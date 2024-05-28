@@ -88,8 +88,9 @@ CREATE TABLE Sucursal (
 CREATE TABLE Categoria (
   id_categoria decimal (18,0) IDENTITY(1,1),
   nombre_categoria nvarchar(255),
-  id_supercategorÌa decimal (18,0) ,
-  PRIMARY KEY (id_categoria)
+  id_supercategor√≠a decimal (18,0) ,
+  PRIMARY KEY (id_categoria),
+  FOREIGN KEY (id_supercategor√≠a) REFERENCES Categoria(id_categoria)
 );
 
 CREATE TABLE Producto (
@@ -214,7 +215,7 @@ CREATE TABLE Descuento_Medio_Pago (
   FOREIGN KEY (id_medio_pago) REFERENCES Medio_Pago(id_medio_pago)
 );
 
-CREATE TABLE EnvÌo (
+CREATE TABLE Env√≠o (
   nro_envio decimal (18,0),
   ticket_numero decimal (18,0),
   fecha_programada_envio datetime,
