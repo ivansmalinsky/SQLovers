@@ -12,11 +12,10 @@ SELECT DISTINCT
     FROM 
         Provincia 
     WHERE 
-        nombre_provincia = gd_esquema.Maestra.SUPER_PROVINCIA
+        nombre_provincia = SUPER_PROVINCIA
     ) FROM gd_esquema.Maestra UNION 
-SELECT DISTINCT SUCURSAL_LOCALIDAD, (SELECT id_provincia FROM Provincia WHERE nombre_provincia = gd_esquema.Maestra.SUCURSAL_PROVINCIA) FROM gd_esquema.Maestra UNION 
-SELECT DISTINCT CLIENTE_LOCALIDAD, (SELECT id_provincia FROM Provincia WHERE nombre_provincia = gd_esquema.Maestra.CLIENTE_PROVINCIA)
-FROM gd_esquema.Maestra;
+SELECT DISTINCT SUCURSAL_LOCALIDAD, (SELECT id_provincia FROM Provincia WHERE nombre_provincia = SUCURSAL_PROVINCIA) FROM gd_esquema.Maestra UNION 
+SELECT DISTINCT CLIENTE_LOCALIDAD, (SELECT id_provincia FROM Provincia WHERE nombre_provincia = CLIENTE_PROVINCIA) FROM gd_esquema.Maestra;
 
 INSERT INTO Supermercado (
     nombre_super, 
@@ -41,7 +40,7 @@ SELECT DISTINCT
     FROM 
         Localidad 
     WHERE 
-        nombre_localidad = gd_esquema.Maestra.SUPER_LOCALIDAD
+        nombre_localidad = SUPER_LOCALIDAD
     )
 FROM gd_esquema.Maestra;
 
@@ -65,7 +64,8 @@ INSERT INTO Regla (
     cantidad_aplicable_descuento, 
     cantidad_maxima, 
     misma_marca, 
-    mismo_producto
+    mismo_producto,
+	id_promocion_prod
 )
 SELECT DISTINCT 
     REGLA_DESCRIPCION,
@@ -74,7 +74,8 @@ SELECT DISTINCT
     REGLA_CANT_APLICA_DESCUENTO,
     REGLA_CANT_MAX_PROD,
     REGLA_APLICA_MISMA_MARCA,
-    REGLA_APLICA_MISMO_PROD
+    REGLA_APLICA_MISMO_PROD,
+	(SELECT id_promocion_prod FROM Promocion_Producto WHERE id_promocion_prod = PROMO_CODIGO)
 FROM gd_esquema.Maestra;
 
 
@@ -98,7 +99,8 @@ SELECT DISTINCT
     CLIENTE_MAIL,
     CLIENTE_FECHA_NACIMIENTO,
     CLIENTE_DOMICILIO,
-    (SELECT id_localidad FROM Localidad WHERE nombre_localidad = gd_esquema.Maestra.CLIENTE_LOCALIDAD)
+    (SELECT id_localidad FROM Localidad WHERE nombre_localidad = CLIENTE_LOCALIDAD
+	AND id_provincia = (SELECT p.id_provincia FROM Provincia p where p.nombre_provincia = CLIENTE_PROVINCIA))
 FROM gd_esquema.Maestra;
 
 INSERT INTO Tipo_Medio_Pago (tipo_mp)
@@ -111,7 +113,7 @@ INSERT INTO Medio_Pago (
 )
 SELECT DISTINCT 
     PAGO_MEDIO_PAGO, 
-    (SELECT id_tipo_mp FROM Tipo_Medio_Pago WHERE tipo_mp = gd_esquema.Maestra.PAGO_TIPO_MEDIO_PAGO)
+    (SELECT id_tipo_mp FROM Tipo_Medio_Pago WHERE tipo_mp = PAGO_TIPO_MEDIO_PAGO)
 FROM gd_esquema.Maestra;
 
 
@@ -124,19 +126,20 @@ FROM gd_esquema.Maestra;
 
 INSERT INTO Sucursal (nombre_sucursal, id_localidad, direccion_sucursal, id_supermercado)
 SELECT DISTINCT SUCURSAL_NOMBRE, 
-                (SELECT id_localidad FROM Localidad WHERE nombre_localidad = gd_esquema.Maestra.SUCURSAL_LOCALIDAD),
-                SUCURSAL_DIRECCION, 
-                (SELECT id_supermercado FROM Supermercado WHERE nombre_super = gd_esquema.Maestra.SUPER_NOMBRE)
+    (SELECT id_localidad FROM Localidad WHERE nombre_localidad = SUCURSAL_LOCALIDAD
+	AND id_provincia = (SELECT p.id_provincia FROM Provincia p where p.nombre_provincia = SUCURSAL_PROVINCIA)),
+    SUCURSAL_DIRECCION, 
+    (SELECT id_supermercado FROM Supermercado WHERE nombre_super = SUPER_NOMBRE)
 FROM gd_esquema.Maestra;
 
 
 INSERT INTO Producto (id_categoria, prod_nombre, prod_desc, precio_unitario_producto, id_prod_marca)
 SELECT DISTINCT  
-                (SELECT id_categoria FROM Categoria WHERE nombre_categoria = gd_esquema.Maestra.PRODUCTO_CATEGORIA), 
+                (SELECT id_categoria FROM Categoria WHERE nombre_categoria = PRODUCTO_CATEGORIA AND nombre_sub_categoria = PRODUCTO_SUB_CATEGORIA), 
                 PRODUCTO_NOMBRE, 
                 PRODUCTO_DESCRIPCION, 
                 PRODUCTO_PRECIO,
-                (SELECT id_prod_marca FROM Marca_Producto WHERE nombre_prod_marca = gd_esquema.Maestra.PRODUCTO_MARCA)
+                (SELECT id_prod_marca FROM Marca_Producto WHERE nombre_prod_marca = PRODUCTO_MARCA)
 FROM gd_esquema.Maestra;
 
 
@@ -151,7 +154,7 @@ INSERT INTO Empleado (
     fecha_nacimiento
 )
 SELECT DISTINCT 
-        (SELECT id_sucursal FROM Sucursal WHERE nombre_sucursal = gd_esquema.Maestra.SUCURSAL_NOMBRE), 
+        (SELECT id_sucursal FROM Sucursal WHERE nombre_sucursal = SUCURSAL_NOMBRE), 
         EMPLEADO_NOMBRE, 
         EMPLEADO_APELLIDO, 
         EMPLEADO_DNI, 
@@ -171,7 +174,7 @@ SELECT DISTINCT
     FROM 
         Sucursal 
     WHERE 
-        nombre_sucursal = gd_esquema.Maestra.SUCURSAL_NOMBRE
+        nombre_sucursal = SUCURSAL_NOMBRE
     AND
         id_supermercado = (
             SELECT 
@@ -179,7 +182,7 @@ SELECT DISTINCT
             FROM 
                 Supermercado 
             WHERE 
-            nombre_super = gd_esquema.Maestra.SUPER_NOMBRE
+            nombre_super = SUPER_NOMBRE
         )
     ), 
     (SELECT 
@@ -187,19 +190,22 @@ SELECT DISTINCT
     FROM 
         TipoCaja 
     WHERE 
-        nombre_tipo_caja = gd_esquema.Maestra.CAJA_TIPO
+        nombre_tipo_caja = CAJA_TIPO
     )
-FROM gd_esquema.Maestra;
+FROM gd_esquema.Maestra
+
+WHERE CAJA_NUMERO IS NOT NULL;
 
 
 INSERT INTO Promocion_Producto (
+	codigo_promo,
     id_promocion_prod, 
     codigo_producto, 
     descripcion_promo, 
     fecha_inicio_promo, 
-    fecha_fin_promo, 
-    id_regla
+    fecha_fin_promo
 )
+
 SELECT DISTINCT 
     PROMO_CODIGO, 
     (SELECT 
@@ -207,20 +213,35 @@ SELECT DISTINCT
     FROM 
         Producto 
     WHERE 
-        prod_nombre = gd_esquema.Maestra.PRODUCTO_NOMBRE
+        prod_nombre = PRODUCTO_NOMBRE AND
+		prod_desc = PRODUCTO_DESCRIPCION AND
+		precio_unitario_producto = PRODUCTO_PRECIO AND
+		--id_categoria = (SELECT id_categoria from Categoria WHERE nombre_categoria = PRODUCTO_CATEGORIA AND nombre_sub_categoria = PRODUCTO_SUB_CATEGORIA) AND
+		id_prod_marca = (SELECT id_prod_marca from Marca_Producto WHERE nombre_prod_marca = PRODUCTO_MARCA)
     ),
     PROMOCION_DESCRIPCION, 
     PROMOCION_FECHA_INICIO, 
-    PROMOCION_FECHA_FIN, 
-    (SELECT 
-        id_regla 
-    FROM 
-        Regla 
-    WHERE 
-        descripcion_regla = gd_esquema.Maestra.REGLA_DESCRIPCION
-    )
-FROM gd_esquema.Maestra;
+    PROMOCION_FECHA_FIN
+FROM gd_esquema.Maestra
+WHERE PROMO_CODIGO IS NOT NULL;
 
+SELECT * FROM Producto
+
+SELECT * FROM gd_esquema.Maestra WHERE PROMO_CODIGO IS NOT NULL
+
+--SELECT PRODUCTO_NOMBRE FROM gd_esquema.Maestra;
+--------------------------------------------------------------------------------------------
+
+/*INSERT INTO Producto (id_categoria, prod_nombre, prod_desc, precio_unitario_producto, id_prod_marca)
+SELECT DISTINCT  
+                (SELECT id_categoria FROM Categoria WHERE nombre_categoria = PRODUCTO_CATEGORIA AND nombre_sub_categoria = PRODUCTO_SUB_CATEGORIA), 
+                PRODUCTO_NOMBRE, 
+                PRODUCTO_DESCRIPCION, 
+                PRODUCTO_PRECIO,
+                (SELECT id_prod_marca FROM Marca_Producto WHERE nombre_prod_marca = PRODUCTO_MARCA)
+FROM gd_esquema.Maestra;*/
+
+--SELECT distinct prod_nombre, precio_unitario_producto from Producto
 
 INSERT INTO Detalle_Pago (
     id_cliente, 
@@ -229,7 +250,7 @@ INSERT INTO Detalle_Pago (
     cuotas
 )
 SELECT DISTINCT  
-    (SELECT id_cliente FROM Cliente WHERE dni_cliente = gd_esquema.Maestra.CLIENTE_DNI), 
+    (SELECT id_cliente FROM Cliente WHERE dni_cliente = CLIENTE_DNI), 
     PAGO_TARJETA_NRO, 
     PAGO_TARJETA_FECHA_VENC, 
     PAGO_TARJETA_CUOTAS
@@ -241,8 +262,8 @@ FROM gd_esquema.Maestra;
 
 INSERT INTO Ticket (
     ticket_numero, 
-    caja_numero, 
     id_sucursal, 
+	caja_numero,
     fecha_hora, 
     legajo_empleado, 
     tipo_comprobante, 
@@ -251,34 +272,25 @@ INSERT INTO Ticket (
     descuento_medio_pago, 
     total_venta
 )
-SELECT DISTINCT TICKET_NUMERO, 
-    (SELECT 
-        caja_numero 
-    FROM 
-        Caja 
-    WHERE 
-        caja_numero = gd_esquema.Maestra.CAJA_NUMERO 
-    AND 
-        id_sucursal = (SELECT id_sucursal FROM Sucursal WHERE nombre_sucursal = gd_esquema.Maestra.SUCURSAL_NOMBRE)
-    AND
-        (SELECT id_supermercado FROM Sucursal s WHERE id_sucursal = s.id_sucursal) = (SELECT id_supermercado FROM Supermercado WHERE nombre_super = gd_esquema.Maestra.SUPER_NOMBRE)
-    ), 
+SELECT DISTINCT 
+	TICKET_NUMERO, 
     (SELECT 
         id_sucursal 
     FROM 
         Sucursal 
     WHERE 
-        nombre_sucursal = gd_esquema.Maestra.SUCURSAL_NOMBRE
+        nombre_sucursal = SUCURSAL_NOMBRE
     AND
-        id_supermercado = (SELECT id_supermercado FROM Supermercado WHERE nombre_super = gd_esquema.Maestra.SUPER_NOMBRE)
-    ), 
+        id_supermercado = (SELECT id_supermercado FROM Supermercado WHERE nombre_super = SUPER_NOMBRE)
+    ),
+	CAJA_NUMERO,
     TICKET_FECHA_HORA, 
     (SELECT 
         legajo_empleado 
     FROM 
         Empleado 
     WHERE 
-        dni = gd_esquema.Maestra.EMPLEADO_DNI 
+        dni = EMPLEADO_DNI 
     ), 
     TICKET_TIPO_COMPROBANTE, 
     TICKET_SUBTOTAL_PRODUCTOS, 
@@ -303,7 +315,7 @@ SELECT DISTINCT
     FROM 
         Producto 
     WHERE 
-        prod_nombre = gd_esquema.Maestra.PRODUCTO_NOMBRE
+        prod_nombre = PRODUCTO_NOMBRE
     ),
     TICKET_DET_CANTIDAD, 
     TICKET_DET_PRECIO, 
@@ -323,9 +335,9 @@ SELECT DISTINCT
     FROM 
         Detalle_Pago 
     WHERE 
-        nro_tarjeta = gd_esquema.Maestra.PAGO_TARJETA_NRO
+        nro_tarjeta = PAGO_TARJETA_NRO
     AND 
-        cuotas = gd_esquema.Maestra.PAGO_TARJETA_CUOTAS
+        cuotas = PAGO_TARJETA_CUOTAS
     ), 
     PAGO_FECHA, 
     PAGO_IMPORTE, 
@@ -334,7 +346,7 @@ SELECT DISTINCT
     FROM 
         Medio_Pago 
     WHERE 
-        nombre_mp = gd_esquema.Maestra.PAGO_MEDIO_PAGO
+        nombre_mp = PAGO_MEDIO_PAGO
     )
 FROM gd_esquema.Maestra;
 
@@ -354,9 +366,9 @@ SELECT DISTINCT
     ENVIO_FECHA_PROGRAMADA, 
     ENVIO_HORA_INICIO, 
     ENVIO_HORA_FIN, 
-    (SELECT id_cliente FROM Cliente WHERE dni_cliente = gd_esquema.Maestra.CLIENTE_DNI), 
+    (SELECT id_cliente FROM Cliente WHERE dni_cliente = CLIENTE_DNI), 
     ENVIO_COSTO, 
-    (SELECT id_estado_envio FROM EstadoEnvio WHERE nombre_estado_envio = gd_esquema.Maestra.ENVIO_ESTADO), 
+    (SELECT id_estado_envio FROM EstadoEnvio WHERE nombre_estado_envio = ENVIO_ESTADO), 
     ENVIO_FECHA_ENTREGA
 FROM gd_esquema.Maestra;
 
@@ -376,7 +388,7 @@ SELECT DISTINCT
     FROM
         Medio_Pago
     WHERE
-        nombre_mp = gd_esquema.Maestra.PAGO_MEDIO_PAGO
+        nombre_mp = PAGO_MEDIO_PAGO
     ),
     DESCUENTO_DESCRIPCION,
     DESCUENTO_FECHA_INICIO,
@@ -385,7 +397,8 @@ SELECT DISTINCT
     DESCUENTO_TOPE
 FROM
     gd_esquema.Maestra
-
+WHERE
+	DESCUENTO_CODIGO IS NOT NULL
 
 INSERT INTO DescuentosMedioPago_X_Pago (
     id_descuento, 
@@ -397,7 +410,7 @@ SELECT DISTINCT
     FROM
         Descuento_Medio_Pago
     WHERE
-        id_descuento = gd_esquema.Maestra.DESCUENTO_CODIGO
+        id_descuento = DESCUENTO_CODIGO
     ),
     (SELECT 
         nro_pago 
@@ -410,9 +423,9 @@ SELECT DISTINCT
             FROM 
                 Detalle_Pago 
             WHERE 
-                nro_tarjeta = gd_esquema.Maestra.PAGO_TARJETA_NRO
+                nro_tarjeta = PAGO_TARJETA_NRO
             AND 
-                cuotas = gd_esquema.Maestra.PAGO_TARJETA_CUOTAS
+                cuotas = PAGO_TARJETA_CUOTAS
         )
     )
 FROM gd_esquema.Maestra;
@@ -430,7 +443,7 @@ SELECT DISTINCT
     FROM 
         Producto 
     WHERE 
-        prod_nombre = gd_esquema.Maestra.PRODUCTO_NOMBRE
+        prod_nombre = PRODUCTO_NOMBRE
     ),
     TICKET_NUMERO
 FROM gd_esquema.Maestra;

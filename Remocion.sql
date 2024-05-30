@@ -18,6 +18,7 @@ DROP TABLE Medio_Pago
 DROP TABLE Detalle_Pago
 DROP TABLE Cliente
 DROP TABLE Caja
+DROP TABLE Regla
 DROP TABLE Promocion_Producto
 DROP TABLE Producto
 DROP TABLE Empleado
@@ -25,7 +26,6 @@ DROP TABLE Sucursal
 DROP TABLE Supermercado
 DROP TABLE Localidad
 DROP TABLE Provincia
-DROP TABLE Regla
 DROP TABLE Tipo_Medio_Pago
 DROP TABLE TipoCaja
 DROP TABLE Marca_Producto

@@ -37,25 +37,6 @@ CREATE TABLE Tipo_Medio_Pago (
   PRIMARY KEY (id_tipo_mp)
 );
 
--- ,[REGLA_APLICA_MISMA_MARCA]
--- ,[REGLA_APLICA_MISMO_PROD]
--- ,[REGLA_CANT_APLICA_DESCUENTO]
--- ,[REGLA_CANT_APLICABLE_REGLA]
--- ,[REGLA_CANT_MAX_PROD]
--- ,[REGLA_DESCRIPCION]
--- ,[REGLA_DESCUENTO_APLICABLE_PROD]
-
-CREATE TABLE Regla (
-  id_regla decimal (18,0) IDENTITY(1,1),
-  descripcion_regla nvarchar(255),
-  descuento_a_aplicar decimal(18,2),
-  cantidad_aplicable_regla decimal(18,0),
-  cantidad_aplicable_descuento decimal(18,0),
-  cantidad_maxima decimal(18,0),
-  misma_marca decimal(18,0),
-  mismo_producto decimal(18,0),
-  PRIMARY KEY (id_regla)
-);
 
 CREATE TABLE Categoria (
   id_categoria decimal (18,0) IDENTITY(1,1),
@@ -157,7 +138,7 @@ CREATE TABLE Producto (
   codigo_producto decimal (18,0) IDENTITY(1,1),
   id_categoria decimal (18,0) ,
   prod_nombre nvarchar(255),
-  prod_desc decimal (18,0) ,
+  prod_desc nvarchar(255),
   precio_unitario_producto decimal (18,2) ,
   id_prod_marca decimal (18,0) ,
   PRIMARY KEY (codigo_producto),
@@ -167,18 +148,38 @@ CREATE TABLE Producto (
 
 
 CREATE TABLE Promocion_Producto (
-  id_promocion_prod decimal(18,0),
+  id_promocion_prod decimal(18,0) IDENTITY(1,1),
+  codigo_promo decimal(18,0),
   codigo_producto decimal(18,0),
   descripcion_promo nvarchar(255),
   fecha_inicio_promo datetime,
   fecha_fin_promo datetime,
-  id_regla decimal(18,0),
-  PRIMARY KEY (id_promocion_prod),
-  FOREIGN KEY (id_regla) REFERENCES Regla(id_regla),
+  PRIMARY KEY (id_promocion_prod, codigo_producto),
   FOREIGN KEY (codigo_producto) REFERENCES Producto(codigo_producto)
 );
 
 
+-- ,[REGLA_APLICA_MISMA_MARCA]
+-- ,[REGLA_APLICA_MISMO_PROD]
+-- ,[REGLA_CANT_APLICA_DESCUENTO]
+-- ,[REGLA_CANT_APLICABLE_REGLA]
+-- ,[REGLA_CANT_MAX_PROD]
+-- ,[REGLA_DESCRIPCION]
+-- ,[REGLA_DESCUENTO_APLICABLE_PROD]
+
+CREATE TABLE Regla (
+  id_regla decimal (18,0) IDENTITY(1,1),
+  descripcion_regla nvarchar(255),
+  descuento_a_aplicar decimal(18,2),
+  cantidad_aplicable_regla decimal(18,0),
+  cantidad_aplicable_descuento decimal(18,0),
+  cantidad_maxima decimal(18,0),
+  misma_marca decimal(18,0),
+  mismo_producto decimal(18,0),
+  id_promocion_prod decimal(18,0),
+  FOREIGN KEY (id_promocion_prod) REFERENCES Promocion_Producto(id_promocion_prod),
+  PRIMARY KEY (id_regla)
+);
 
 -- [SUPER_NOMBRE]
 -- ,[SUPER_RAZON_SOC]
