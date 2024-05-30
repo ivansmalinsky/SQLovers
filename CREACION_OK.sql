@@ -37,30 +37,12 @@ CREATE TABLE Tipo_Medio_Pago (
   PRIMARY KEY (id_tipo_mp)
 );
 
-
 CREATE TABLE Categoria (
   id_categoria decimal (18,0) IDENTITY(1,1),
   nombre_categoria nvarchar(255),
   nombre_sub_categoria nvarchar(255),
   PRIMARY KEY (id_categoria)
 );
-
--- ,[EMPLEADO_NOMBRE]
--- ,[EMPLEADO_APELLIDO]
--- ,[EMPLEADO_DNI]
--- ,[EMPLEADO_FECHA_REGISTRO]
--- ,[EMPLEADO_TELEFONO]
--- ,[EMPLEADO_MAIL]
--- ,[EMPLEADO_FECHA_NACIMIENTO]
-
-
-
-
-
-
-
-
-
 
 CREATE TABLE Localidad (
   id_localidad decimal (18, 0) IDENTITY(1,1),
@@ -69,11 +51,6 @@ CREATE TABLE Localidad (
   PRIMARY KEY (id_localidad),
   FOREIGN KEY (id_provincia) REFERENCES Provincia(id_provincia)
 );
-
-
-
-
-
 
 CREATE TABLE Supermercado (
   id_supermercado decimal (18,0) IDENTITY(1,1),
@@ -89,10 +66,6 @@ CREATE TABLE Supermercado (
   FOREIGN KEY (id_localidad) REFERENCES Localidad(id_localidad)
 );
 
-
-
-
-
 CREATE TABLE Sucursal (
   id_sucursal decimal (18,0) IDENTITY(1,1),
   nombre_sucursal nvarchar(255),
@@ -103,8 +76,6 @@ CREATE TABLE Sucursal (
   FOREIGN KEY (id_localidad) REFERENCES Localidad(id_localidad),
   FOREIGN KEY (id_supermercado) REFERENCES Supermercado(id_supermercado)
 );
-
-
 
 CREATE TABLE Empleado (
   legajo_empleado decimal(18,0) IDENTITY(1,1),
@@ -119,20 +90,6 @@ CREATE TABLE Empleado (
   PRIMARY KEY (legajo_empleado),
   FOREIGN KEY (id_sucursal) REFERENCES Sucursal(id_sucursal)
 );
-
-
-
-
-
-
-
-
--- ,[PRODUCTO_NOMBRE]
--- ,[PRODUCTO_DESCRIPCION]
--- ,[PRODUCTO_PRECIO]
--- ,[PRODUCTO_MARCA]
--- ,[PRODUCTO_SUB_CATEGORIA]
--- ,[PRODUCTO_CATEGORIA]
 
 CREATE TABLE Producto (
   codigo_producto decimal (18,0) IDENTITY(1,1),
@@ -158,15 +115,6 @@ CREATE TABLE Promocion_Producto (
   FOREIGN KEY (codigo_producto) REFERENCES Producto(codigo_producto)
 );
 
-
--- ,[REGLA_APLICA_MISMA_MARCA]
--- ,[REGLA_APLICA_MISMO_PROD]
--- ,[REGLA_CANT_APLICA_DESCUENTO]
--- ,[REGLA_CANT_APLICABLE_REGLA]
--- ,[REGLA_CANT_MAX_PROD]
--- ,[REGLA_DESCRIPCION]
--- ,[REGLA_DESCUENTO_APLICABLE_PROD]
-
 CREATE TABLE Regla (
   id_regla decimal (18,0) IDENTITY(1,1),
   descripcion_regla nvarchar(255),
@@ -181,32 +129,6 @@ CREATE TABLE Regla (
   PRIMARY KEY (id_regla)
 );
 
--- [SUPER_NOMBRE]
--- ,[SUPER_RAZON_SOC]
--- ,[SUPER_CUIT]
--- ,[SUPER_IIBB]
--- ,[SUPER_DOMICILIO]
--- ,[SUPER_FECHA_INI_ACTIVIDAD]
--- ,[SUPER_CONDICION_FISCAL]
--- ,[SUPER_LOCALIDAD]
--- ,[SUPER_PROVINCIA]
-
-
-
--- ,[SUCURSAL_NOMBRE]
--- ,[SUCURSAL_DIRECCION]
--- ,[SUCURSAL_LOCALIDAD]
--- ,[SUCURSAL_PROVINCIA]
-
-
-
-
-
--- ,[CAJA_NUMERO]
--- ,[CAJA_TIPO]
-
-
-
 CREATE TABLE Caja (
   caja_numero decimal (18, 0),
   id_sucursal decimal (18, 0),
@@ -216,19 +138,6 @@ CREATE TABLE Caja (
   FOREIGN KEY (id_sucursal) REFERENCES Sucursal(id_sucursal)
 );
 
--- ,[TICKET_NUMERO]
--- ,[TICKET_FECHA_HORA]
--- ,[TICKET_TIPO_COMPROBANTE]
--- ,[TICKET_SUBTOTAL_PRODUCTOS]
--- ,[TICKET_TOTAL_DESCUENTO_APLICADO]
--- ,[TICKET_TOTAL_DESCUENTO_APLICADO_MP]
--- ,[TICKET_TOTAL_ENVIO]
--- ,[TICKET_TOTAL_TICKET]
-
-
--- ,[TICKET_DET_CANTIDAD]
--- ,[TICKET_DET_PRECIO]
--- ,[TICKET_DET_TOTAL]
 CREATE TABLE Cliente (
   id_cliente decimal (18,0) IDENTITY(1,1),
   nombre_cliente nvarchar(255),
@@ -254,15 +163,6 @@ CREATE TABLE Detalle_Pago (
   FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente)
 );
 
--- ,[PAGO_FECHA]
--- ,[PAGO_IMPORTE]
--- ,[PAGO_MEDIO_PAGO]
--- ,[PAGO_TIPO_MEDIO_PAGO]
--- ,[PAGO_TARJETA_NRO]
--- ,[PAGO_TARJETA_CUOTAS]
--- ,[PAGO_TARJETA_FECHA_VENC]
--- ,[PAGO_DESCUENTO_APLICADO]
-
 CREATE TABLE Medio_Pago (
   id_medio_pago decimal (18,0) IDENTITY(1,1),
   nombre_mp nvarchar(255),
@@ -282,8 +182,6 @@ CREATE TABLE Pago (
   PRIMARY KEY (nro_pago)
 );
 
-
-
 CREATE TABLE Ticket (
   ticket_numero decimal(18,0),
   caja_numero decimal(18,0),
@@ -302,7 +200,6 @@ CREATE TABLE Ticket (
   FOREIGN KEY (nro_pago) REFERENCES Pago(nro_pago)
 );
 
-
 CREATE TABLE ItemProducto (
   ticket_numero decimal (18,0),
   codigo_producto decimal(18,0),
@@ -314,9 +211,6 @@ CREATE TABLE ItemProducto (
   FOREIGN KEY (codigo_producto) REFERENCES Producto(codigo_producto)
 );
 
--- ,[PROMO_APLICADA_DESCUENTO]
--- ,[PROMO_CODIGO]
-
 CREATE TABLE Promocion_x_ItemProducto (
   id_promocion_prod decimal(18,0),
   codigo_producto decimal(18,0),
@@ -325,11 +219,6 @@ CREATE TABLE Promocion_x_ItemProducto (
   FOREIGN KEY (ticket_numero,codigo_producto) REFERENCES ItemProducto(ticket_numero,codigo_producto),
   FOREIGN KEY (id_promocion_prod) REFERENCES Promocion_Producto(id_promocion_prod)
 );
-
-
-
-
-
 
 CREATE TABLE Descuento_Medio_Pago (
   id_descuento decimal (18,0),
@@ -343,12 +232,6 @@ CREATE TABLE Descuento_Medio_Pago (
   FOREIGN KEY (id_medio_pago) REFERENCES Medio_Pago(id_medio_pago)
 );
 
--- ,[ENVIO_COSTO]
--- ,[ENVIO_FECHA_PROGRAMADA]
--- ,[ENVIO_HORA_INICIO]
--- ,[ENVIO_HORA_FIN]
--- ,[ENVIO_FECHA_ENTREGA]
--- ,[ENVIO_ESTADO]
 CREATE TABLE Envio (
   nro_envio decimal (18,0) IDENTITY(1,1),
   ticket_numero decimal (18,0),
