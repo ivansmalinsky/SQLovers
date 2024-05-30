@@ -20,3 +20,9 @@ SELECT
 FROM
     gd_esquema.Maestra
 WHERE DESCUENTO_CODIGO IS NOT NULL
+
+
+SELECT * FROM SQLOVERS.Producto
+
+
+SELECT id_localidad FROM Localidad WHERE nombre_localidad = gd_esquema.Maestra.CLIENTE_LOCALIDAD

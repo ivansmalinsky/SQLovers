@@ -5,8 +5,16 @@ SELECT DISTINCT CLIENTE_PROVINCIA FROM gd_esquema.Maestra
 
 
 INSERT INTO Localidad (nombre_localidad, id_provincia)
-SELECT DISTINCT SUPER_LOCALIDAD, (SELECT id_provincia FROM Provincia WHERE nombre_provincia = gd_esquema.Maestra.SUPER_PROVINCIA) UNION 
-SELECT DISTINCT SUCURSAL_LOCALIDAD, (SELECT id_provincia FROM Provincia WHERE nombre_provincia = gd_esquema.Maestra.SUCURSAL_PROVINCIA) UNION 
+SELECT DISTINCT 
+    SUPER_LOCALIDAD, 
+    (SELECT 
+        id_provincia 
+    FROM 
+        Provincia 
+    WHERE 
+        nombre_provincia = gd_esquema.Maestra.SUPER_PROVINCIA
+    ) FROM gd_esquema.Maestra UNION 
+SELECT DISTINCT SUCURSAL_LOCALIDAD, (SELECT id_provincia FROM Provincia WHERE nombre_provincia = gd_esquema.Maestra.SUCURSAL_PROVINCIA) FROM gd_esquema.Maestra UNION 
 SELECT DISTINCT CLIENTE_LOCALIDAD, (SELECT id_provincia FROM Provincia WHERE nombre_provincia = gd_esquema.Maestra.CLIENTE_PROVINCIA)
 FROM gd_esquema.Maestra;
 
@@ -37,14 +45,10 @@ SELECT DISTINCT
     )
 FROM gd_esquema.Maestra;
 
-INSERT INTO Categoria (nombre_categoria)
-SELECT DISTINCT PRODUCTO_SUB_CATEGORIA
+INSERT INTO Categoria (nombre_categoria, nombre_sub_categoria)
+SELECT DISTINCT PRODUCTO_CATEGORIA, PRODUCTO_SUB_CATEGORIA
 FROM gd_esquema.Maestra;
 
--- A TERMINAR
-INSERT INTO Categoria (id_supercategoría)
-SELECT DISTINCT id_categoria 
-FROM Categoria WHERE (SELECT PRODUCTO_CATEGORIA FROM gd_esquema.Maestra) = nombre_categoria;
 
 INSERT INTO Marca_Producto (nombre_prod_marca)
 SELECT DISTINCT PRODUCTO_MARCA
@@ -204,7 +208,7 @@ SELECT DISTINCT
         Producto 
     WHERE 
         prod_nombre = gd_esquema.Maestra.PRODUCTO_NOMBRE
-    )
+    ),
     PROMOCION_DESCRIPCION, 
     PROMOCION_FECHA_INICIO, 
     PROMOCION_FECHA_FIN, 
@@ -225,7 +229,7 @@ INSERT INTO Detalle_Pago (
     cuotas
 )
 SELECT DISTINCT  
-    (SELECT id_cliente FROM Cliente WHERE dni = gd_esquema.Maestra.CLIENTE_DNI), 
+    (SELECT id_cliente FROM Cliente WHERE dni_cliente = gd_esquema.Maestra.CLIENTE_DNI), 
     PAGO_TARJETA_NRO, 
     PAGO_TARJETA_FECHA_VENC, 
     PAGO_TARJETA_CUOTAS
@@ -257,7 +261,7 @@ SELECT DISTINCT TICKET_NUMERO,
     AND 
         id_sucursal = (SELECT id_sucursal FROM Sucursal WHERE nombre_sucursal = gd_esquema.Maestra.SUCURSAL_NOMBRE)
     AND
-        id_supermercado = (SELECT id_supermercado FROM Supermercado WHERE nombre_super = gd_esquema.Maestra.SUPER_NOMBRE)
+        (SELECT id_supermercado FROM Sucursal s WHERE id_sucursal = s.id_sucursal) = (SELECT id_supermercado FROM Supermercado WHERE nombre_super = gd_esquema.Maestra.SUPER_NOMBRE)
     ), 
     (SELECT 
         id_sucursal 
@@ -350,7 +354,7 @@ SELECT DISTINCT
     ENVIO_FECHA_PROGRAMADA, 
     ENVIO_HORA_INICIO, 
     ENVIO_HORA_FIN, 
-    (SELECT id_cliente FROM Cliente WHERE dni = gd_esquema.Maestra.CLIENTE_DNI), 
+    (SELECT id_cliente FROM Cliente WHERE dni_cliente = gd_esquema.Maestra.CLIENTE_DNI), 
     ENVIO_COSTO, 
     (SELECT id_estado_envio FROM EstadoEnvio WHERE nombre_estado_envio = gd_esquema.Maestra.ENVIO_ESTADO), 
     ENVIO_FECHA_ENTREGA
