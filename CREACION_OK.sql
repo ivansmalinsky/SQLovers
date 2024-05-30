@@ -157,7 +157,7 @@ CREATE TABLE Producto (
   codigo_producto decimal (18,0) IDENTITY(1,1),
   id_categoria decimal (18,0) ,
   prod_nombre nvarchar(255),
-  prod_desc decimal (18,0) ,
+  prod_desc nvarchar(255) ,
   precio_unitario_producto decimal (18,2) ,
   id_prod_marca decimal (18,0) ,
   PRIMARY KEY (codigo_producto),

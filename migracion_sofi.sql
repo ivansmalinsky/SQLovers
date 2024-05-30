@@ -90,16 +90,17 @@ INSERT INTO Cliente (
     id_localidad
 )
 SELECT DISTINCT 
-    CLIENTE_NOMBRE, 
-    CLIENTE_APELLIDO,
-    CLIENTE_DNI,
-    CLIENTE_FECHA_REGISTRO,
-    CLIENTE_TELEFONO,
-    CLIENTE_MAIL,
-    CLIENTE_FECHA_NACIMIENTO,
-    CLIENTE_DOMICILIO,
-    (SELECT id_localidad FROM Localidad WHERE nombre_localidad = gd_esquema.Maestra.CLIENTE_LOCALIDAD)
-FROM gd_esquema.Maestra;
+    m.CLIENTE_NOMBRE, 
+    m.CLIENTE_APELLIDO,
+    m.CLIENTE_DNI,
+    m.CLIENTE_FECHA_REGISTRO,
+    m.CLIENTE_TELEFONO,
+    m.CLIENTE_MAIL,
+    m.CLIENTE_FECHA_NACIMIENTO,
+    m.CLIENTE_DOMICILIO,
+    l.id_localidad
+FROM gd_esquema.Maestra m
+LEFT JOIN Localidad l ON l.nombre_localidad = m.CLIENTE_LOCALIDAD;
 
 INSERT INTO Tipo_Medio_Pago (tipo_mp)
 SELECT DISTINCT PAGO_TIPO_MEDIO_PAGO
@@ -110,9 +111,10 @@ INSERT INTO Medio_Pago (
     id_tipo_mp
 )
 SELECT DISTINCT 
-    PAGO_MEDIO_PAGO, 
-    (SELECT id_tipo_mp FROM Tipo_Medio_Pago WHERE tipo_mp = gd_esquema.Maestra.PAGO_TIPO_MEDIO_PAGO)
-FROM gd_esquema.Maestra;
+    m.PAGO_MEDIO_PAGO, 
+    t.id_tipo_mp
+FROM gd_esquema.Maestra m
+LEFT JOIN Tipo_Medio_Pago t ON t.tipo_mp = m.PAGO_TIPO_MEDIO_PAGO;
 
 
 INSERT INTO EstadoEnvio (nombre_estado_envio)
@@ -123,22 +125,25 @@ FROM gd_esquema.Maestra;
 
 
 INSERT INTO Sucursal (nombre_sucursal, id_localidad, direccion_sucursal, id_supermercado)
-SELECT DISTINCT SUCURSAL_NOMBRE, 
-                (SELECT id_localidad FROM Localidad WHERE nombre_localidad = gd_esquema.Maestra.SUCURSAL_LOCALIDAD),
-                SUCURSAL_DIRECCION, 
-                (SELECT id_supermercado FROM Supermercado WHERE nombre_super = gd_esquema.Maestra.SUPER_NOMBRE)
-FROM gd_esquema.Maestra;
-
+SELECT DISTINCT 
+    m.SUCURSAL_NOMBRE, 
+    l.id_localidad,
+    m.SUCURSAL_DIRECCION, 
+    s.id_supermercado
+FROM gd_esquema.Maestra m
+LEFT JOIN Localidad l ON l.nombre_localidad = m.SUCURSAL_LOCALIDAD
+LEFT JOIN Supermercado s ON s.nombre_super = m.SUPER_NOMBRE;
 
 INSERT INTO Producto (id_categoria, prod_nombre, prod_desc, precio_unitario_producto, id_prod_marca)
 SELECT DISTINCT  
-                (SELECT id_categoria FROM Categoria WHERE nombre_categoria = gd_esquema.Maestra.PRODUCTO_CATEGORIA), 
-                PRODUCTO_NOMBRE, 
-                PRODUCTO_DESCRIPCION, 
-                PRODUCTO_PRECIO,
-                (SELECT id_prod_marca FROM Marca_Producto WHERE nombre_prod_marca = gd_esquema.Maestra.PRODUCTO_MARCA)
-FROM gd_esquema.Maestra;
-
+    c.id_categoria,
+    m.PRODUCTO_NOMBRE, 
+    m.PRODUCTO_DESCRIPCION, 
+    m.PRODUCTO_PRECIO,
+    mp.id_prod_marca
+FROM gd_esquema.Maestra m
+LEFT JOIN Categoria c ON c.nombre_categoria = m.PRODUCTO_CATEGORIA
+LEFT JOIN Marca_Producto mp ON mp.nombre_prod_marca = m.PRODUCTO_MARCA;
 
 INSERT INTO Empleado (
     id_sucursal, 
@@ -151,45 +156,29 @@ INSERT INTO Empleado (
     fecha_nacimiento
 )
 SELECT DISTINCT 
-        (SELECT id_sucursal FROM Sucursal WHERE nombre_sucursal = gd_esquema.Maestra.SUCURSAL_NOMBRE), 
-        EMPLEADO_NOMBRE, 
-        EMPLEADO_APELLIDO, 
-        EMPLEADO_DNI, 
-        EMPLEADO_TELEFONO, 
-        EMPLEADO_MAIL, 
-        EMPLEADO_FECHA_REGISTRO, 
-        EMPLEADO_FECHA_NACIMIENTO
-FROM gd_esquema.Maestra;
+    s.id_sucursal,
+    m.EMPLEADO_NOMBRE, 
+    m.EMPLEADO_APELLIDO, 
+    m.EMPLEADO_DNI, 
+    m.EMPLEADO_TELEFONO, 
+    m.EMPLEADO_MAIL, 
+    m.EMPLEADO_FECHA_REGISTRO, 
+    m.EMPLEADO_FECHA_NACIMIENTO
+FROM gd_esquema.Maestra m
+LEFT JOIN Sucursal s ON s.nombre_sucursal = m.SUCURSAL_NOMBRE;
 
 
 
 INSERT INTO Caja (caja_numero, id_sucursal, id_tipo_caja)
 SELECT DISTINCT 
-    CAJA_NUMERO, 
-    (SELECT 
-        id_sucursal 
-    FROM 
-        Sucursal 
-    WHERE 
-        nombre_sucursal = gd_esquema.Maestra.SUCURSAL_NOMBRE
-    AND
-        id_supermercado = (
-            SELECT 
-                id_supermercado 
-            FROM 
-                Supermercado 
-            WHERE 
-            nombre_super = gd_esquema.Maestra.SUPER_NOMBRE
-        )
-    ), 
-    (SELECT 
-        id_tipo_caja 
-    FROM 
-        TipoCaja 
-    WHERE 
-        nombre_tipo_caja = gd_esquema.Maestra.CAJA_TIPO
-    )
-FROM gd_esquema.Maestra;
+    m.CAJA_NUMERO, 
+    s.id_sucursal,
+    tc.id_tipo_caja
+FROM gd_esquema.Maestra m
+LEFT JOIN Sucursal s ON s.nombre_sucursal = m.SUCURSAL_NOMBRE
+LEFT JOIN Supermercado sm ON sm.nombre_super = m.SUPER_NOMBRE
+LEFT JOIN TipoCaja tc ON tc.nombre_tipo_caja = m.CAJA_TIPO
+WHERE s.id_supermercado = sm.id_supermercado;
 
 
 INSERT INTO Promocion_Producto (
@@ -201,26 +190,15 @@ INSERT INTO Promocion_Producto (
     id_regla
 )
 SELECT DISTINCT 
-    PROMO_CODIGO, 
-    (SELECT 
-        codigo_producto 
-    FROM 
-        Producto 
-    WHERE 
-        prod_nombre = gd_esquema.Maestra.PRODUCTO_NOMBRE
-    ),
-    PROMOCION_DESCRIPCION, 
-    PROMOCION_FECHA_INICIO, 
-    PROMOCION_FECHA_FIN, 
-    (SELECT 
-        id_regla 
-    FROM 
-        Regla 
-    WHERE 
-        descripcion_regla = gd_esquema.Maestra.REGLA_DESCRIPCION
-    )
-FROM gd_esquema.Maestra;
-
+    m.PROMO_CODIGO, 
+    p.codigo_producto,
+    m.PROMOCION_DESCRIPCION, 
+    m.PROMOCION_FECHA_INICIO, 
+    m.PROMOCION_FECHA_FIN, 
+    r.id_regla
+FROM gd_esquema.Maestra m
+LEFT JOIN Producto p ON m.PRODUCTO_NOMBRE = p.prod_nombre
+LEFT JOIN Regla r ON m.REGLA_DESCRIPCION = r.descripcion_regla;
 
 INSERT INTO Detalle_Pago (
     id_cliente, 
@@ -229,12 +207,12 @@ INSERT INTO Detalle_Pago (
     cuotas
 )
 SELECT DISTINCT  
-    (SELECT id_cliente FROM Cliente WHERE dni_cliente = gd_esquema.Maestra.CLIENTE_DNI), 
-    PAGO_TARJETA_NRO, 
-    PAGO_TARJETA_FECHA_VENC, 
-    PAGO_TARJETA_CUOTAS
-FROM gd_esquema.Maestra;
-
+    c.id_cliente, 
+    m.PAGO_TARJETA_NRO, 
+    m.PAGO_TARJETA_FECHA_VENC, 
+    m.PAGO_TARJETA_CUOTAS
+FROM gd_esquema.Maestra m
+LEFT JOIN Cliente c ON m.CLIENTE_DNI = c.dni_cliente;
 
 
 --tablas con 3 dependencias o más 
@@ -251,41 +229,22 @@ INSERT INTO Ticket (
     descuento_medio_pago, 
     total_venta
 )
-SELECT DISTINCT TICKET_NUMERO, 
-    (SELECT 
-        caja_numero 
-    FROM 
-        Caja 
-    WHERE 
-        caja_numero = gd_esquema.Maestra.CAJA_NUMERO 
-    AND 
-        id_sucursal = (SELECT id_sucursal FROM Sucursal WHERE nombre_sucursal = gd_esquema.Maestra.SUCURSAL_NOMBRE)
-    AND
-        (SELECT id_supermercado FROM Sucursal s WHERE id_sucursal = s.id_sucursal) = (SELECT id_supermercado FROM Supermercado WHERE nombre_super = gd_esquema.Maestra.SUPER_NOMBRE)
-    ), 
-    (SELECT 
-        id_sucursal 
-    FROM 
-        Sucursal 
-    WHERE 
-        nombre_sucursal = gd_esquema.Maestra.SUCURSAL_NOMBRE
-    AND
-        id_supermercado = (SELECT id_supermercado FROM Supermercado WHERE nombre_super = gd_esquema.Maestra.SUPER_NOMBRE)
-    ), 
-    TICKET_FECHA_HORA, 
-    (SELECT 
-        legajo_empleado 
-    FROM 
-        Empleado 
-    WHERE 
-        dni = gd_esquema.Maestra.EMPLEADO_DNI 
-    ), 
-    TICKET_TIPO_COMPROBANTE, 
-    TICKET_SUBTOTAL_PRODUCTOS, 
-    TICKET_TOTAL_DESCUENTO_APLICADO, 
-    TICKET_TOTAL_DESCUENTO_APLICADO_MP, 
-    TICKET_TOTAL_TICKET
-FROM gd_esquema.Maestra;
+SELECT DISTINCT 
+    m.TICKET_NUMERO, 
+    c.caja_numero, 
+    s.id_sucursal, 
+    m.TICKET_FECHA_HORA, 
+    e.legajo_empleado, 
+    m.TICKET_TIPO_COMPROBANTE, 
+    m.TICKET_SUBTOTAL_PRODUCTOS, 
+    m.TICKET_TOTAL_DESCUENTO_APLICADO, 
+    m.TICKET_TOTAL_DESCUENTO_APLICADO_MP, 
+    m.TICKET_TOTAL_TICKET
+FROM gd_esquema.Maestra m
+LEFT JOIN Caja c ON m.CAJA_NUMERO = c.caja_numero
+LEFT JOIN Sucursal s ON m.SUCURSAL_NOMBRE = s.nombre_sucursal
+LEFT JOIN Supermercado su ON s.id_supermercado = su.id_supermercado AND su.nombre_super = m.SUPER_NOMBRE
+LEFT JOIN Empleado e ON m.EMPLEADO_DNI = e.dni;
 
 
 
@@ -297,18 +256,13 @@ INSERT INTO ItemProducto (
     total_producto
 )
 SELECT DISTINCT 
-    TICKET_NUMERO, 
-    (SELECT 
-        codigo_producto 
-    FROM 
-        Producto 
-    WHERE 
-        prod_nombre = gd_esquema.Maestra.PRODUCTO_NOMBRE
-    ),
-    TICKET_DET_CANTIDAD, 
-    TICKET_DET_PRECIO, 
-    TICKET_DET_TOTAL
-FROM gd_esquema.Maestra;
+    m.TICKET_NUMERO, 
+    p.codigo_producto,
+    m.TICKET_DET_CANTIDAD, 
+    m.TICKET_DET_PRECIO, 
+    m.TICKET_DET_TOTAL
+FROM gd_esquema.Maestra m
+LEFT JOIN Producto p ON m.PRODUCTO_NOMBRE = p.prod_nombre;
 
 
 INSERT INTO Pago (
@@ -318,25 +272,13 @@ INSERT INTO Pago (
     id_medio_pago
 )
 SELECT DISTINCT  
-    (SELECT 
-        id_detalle_pago 
-    FROM 
-        Detalle_Pago 
-    WHERE 
-        nro_tarjeta = gd_esquema.Maestra.PAGO_TARJETA_NRO
-    AND 
-        cuotas = gd_esquema.Maestra.PAGO_TARJETA_CUOTAS
-    ), 
-    PAGO_FECHA, 
-    PAGO_IMPORTE, 
-    (SELECT 
-        id_medio_pago 
-    FROM 
-        Medio_Pago 
-    WHERE 
-        nombre_mp = gd_esquema.Maestra.PAGO_MEDIO_PAGO
-    )
-FROM gd_esquema.Maestra;
+    dp.id_detalle_pago,
+    m.PAGO_FECHA, 
+    m.PAGO_IMPORTE, 
+    mp.id_medio_pago
+FROM gd_esquema.Maestra m
+LEFT JOIN Detalle_Pago dp ON m.PAGO_TARJETA_NRO = dp.nro_tarjeta AND m.PAGO_TARJETA_CUOTAS = dp.cuotas
+LEFT JOIN Medio_Pago mp ON m.PAGO_MEDIO_PAGO = mp.nombre_mp;
 
 
 INSERT INTO Envio (
@@ -350,15 +292,18 @@ INSERT INTO Envio (
     fecha_hora_entrega_envio
 )
 SELECT DISTINCT 
-    TICKET_NUMERO, 
-    ENVIO_FECHA_PROGRAMADA, 
-    ENVIO_HORA_INICIO, 
-    ENVIO_HORA_FIN, 
-    (SELECT id_cliente FROM Cliente WHERE dni_cliente = gd_esquema.Maestra.CLIENTE_DNI), 
-    ENVIO_COSTO, 
-    (SELECT id_estado_envio FROM EstadoEnvio WHERE nombre_estado_envio = gd_esquema.Maestra.ENVIO_ESTADO), 
-    ENVIO_FECHA_ENTREGA
-FROM gd_esquema.Maestra;
+    m.TICKET_NUMERO, 
+    m.ENVIO_FECHA_PROGRAMADA, 
+    m.ENVIO_HORA_INICIO, 
+    m.ENVIO_HORA_FIN, 
+    c.id_cliente, 
+    m.ENVIO_COSTO, 
+    ee.id_estado_envio, 
+    m.ENVIO_FECHA_ENTREGA
+FROM gd_esquema.Maestra m
+LEFT JOIN Cliente c ON m.CLIENTE_DNI = c.dni_cliente
+LEFT JOIN EstadoEnvio ee ON m.ENVIO_ESTADO = ee.nombre_estado_envio;
+
 
 INSERT INTO Descuento_Medio_Pago(
     id_descuento,
@@ -370,52 +315,29 @@ INSERT INTO Descuento_Medio_Pago(
     tope_descuento
 )
 SELECT DISTINCT
-    DESCUENTO_CODIGO,
-    (SELECT 
-        id_medio_pago 
-    FROM
-        Medio_Pago
-    WHERE
-        nombre_mp = gd_esquema.Maestra.PAGO_MEDIO_PAGO
-    ),
-    DESCUENTO_DESCRIPCION,
-    DESCUENTO_FECHA_INICIO,
-    DESCUENTO_FECHA_FIN,
-    DESCUENTO_PORCENTAJE_DESC,
-    DESCUENTO_TOPE
+    m.DESCUENTO_CODIGO,
+    mp.id_medio_pago,
+    m.DESCUENTO_DESCRIPCION,
+    m.DESCUENTO_FECHA_INICIO,
+    m.DESCUENTO_FECHA_FIN,
+    m.DESCUENTO_PORCENTAJE_DESC,
+    m.DESCUENTO_TOPE
 FROM
-    gd_esquema.Maestra
+    gd_esquema.Maestra m
+LEFT JOIN Medio_Pago mp ON m.PAGO_MEDIO_PAGO = mp.nombre_mp;
 
 
 INSERT INTO DescuentosMedioPago_X_Pago (
     id_descuento, 
     nro_pago
 )
-SELECT DISTINCT
-    (SELECT
-        id_descuento
-    FROM
-        Descuento_Medio_Pago
-    WHERE
-        id_descuento = gd_esquema.Maestra.DESCUENTO_CODIGO
-    ),
-    (SELECT 
-        nro_pago 
-    FROM 
-        Pago 
-    WHERE 
-        id_detalle_pago = (
-            SELECT 
-                id_detalle_pago 
-            FROM 
-                Detalle_Pago 
-            WHERE 
-                nro_tarjeta = gd_esquema.Maestra.PAGO_TARJETA_NRO
-            AND 
-                cuotas = gd_esquema.Maestra.PAGO_TARJETA_CUOTAS
-        )
-    )
-FROM gd_esquema.Maestra;
+SELECT 
+    dmp.id_descuento,
+    p.nro_pago
+FROM gd_esquema.Maestra m
+LEFT JOIN Descuento_Medio_Pago dmp ON m.DESCUENTO_CODIGO = dmp.id_descuento
+LEFT JOIN Detalle_Pago dp ON m.PAGO_TARJETA_NRO = dp.nro_tarjeta AND m.PAGO_TARJETA_CUOTAS = dp.cuotas
+LEFT JOIN Pago p ON dp.id_detalle_pago = p.id_detalle_pago;
 
 
 INSERT INTO Promocion_x_ItemProducto (
@@ -424,13 +346,8 @@ INSERT INTO Promocion_x_ItemProducto (
     ticket_numero
 )
 SELECT DISTINCT 
-    PROMO_CODIGO, 
-    (SELECT 
-        codigo_producto 
-    FROM 
-        Producto 
-    WHERE 
-        prod_nombre = gd_esquema.Maestra.PRODUCTO_NOMBRE
-    ),
-    TICKET_NUMERO
-FROM gd_esquema.Maestra;
+    m.PROMO_CODIGO, 
+    p.codigo_producto,
+    m.TICKET_NUMERO
+FROM gd_esquema.Maestra m
+LEFT JOIN Producto p ON m.PRODUCTO_NOMBRE = p.prod_nombre;
